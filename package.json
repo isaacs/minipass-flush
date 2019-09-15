@@ -1,6 +1,6 @@
 {
   "name": "minipass-flush",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A Minipass stream that calls a flush function before emitting 'end'",
   "author": "Isaac Z. Schlueter <i@izs.me> (https://izs.me)",
   "license": "ISC",
