@@ -1,0 +1,111 @@
+const Flush = require('../')
+const t = require('tap')
+
+t.test('flush option, ok, cb', t => {
+  let flushCalled = false
+  const f = new Flush((cb) => {
+    t.equal(flushCalled, false, 'call flush one time')
+    flushCalled = true
+    return cb()
+  })
+  f.setEncoding('utf8')
+  f.on('end', () => {
+    t.equal(flushCalled, true, 'called flush before end event')
+    t.equal(sawData, true, 'saw data')
+    t.end()
+  })
+  let sawData = false
+  f.on('data', d => {
+    sawData = true
+    t.equal(d, 'foo')
+  })
+  f.end('foo')
+})
+
+t.test('flush option, ok, promise', t => {
+  let flushCalled = false
+  const f = new Flush({
+    encoding: 'utf8',
+    flush () {
+      t.equal(flushCalled, false, 'call flush one time')
+      flushCalled = true
+      return Promise.resolve(true)
+    }
+  })
+  f.on('end', () => {
+    t.equal(flushCalled, true, 'called flush before end event')
+    t.equal(sawData, true, 'saw data')
+    t.end()
+  })
+  let sawData = false
+  f.on('data', d => {
+    sawData = true
+    t.equal(d, 'foo')
+  })
+  f.end('foo')
+})
+
+t.test('flush option, not ok, cb', t => {
+  let flushCalled = false
+  const poop = new Error('poop')
+  // can override subclass's flush with an option
+  const f = new (class extends Flush {
+    flush (cb) {
+      t.fail('should not call this flush function')
+    }
+  })({
+    encoding: 'utf8',
+    flush (cb) {
+      t.equal(flushCalled, false, 'call flush one time')
+      flushCalled = true
+      return cb(poop)
+    },
+  })
+
+  f.on('error', er => {
+    t.equal(sawData, true, 'saw data')
+    t.equal(flushCalled, true, 'called flush before error event')
+    t.equal(er, poop, 'flush error was raised')
+    t.end()
+  })
+  let sawData = false
+  f.on('data', d => {
+    sawData = true
+    t.equal(d, 'foo')
+  })
+  f.end('foo')
+})
+
+t.test('flush option, not ok, promise', t => {
+  let flushCalled = false
+  const poop = new Error('poop')
+
+  // extending a subclass with a flush() method works the same way
+  const f = new (class extends Flush {
+    flush () {
+      t.equal(flushCalled, false, 'call flush one time')
+      flushCalled = true
+      return Promise.reject(poop)
+    }
+  })({ encoding: 'utf8' })
+
+  f.on('error', er => {
+    t.equal(flushCalled, true, 'called flush before error event')
+    t.equal(er, poop, 'flush error was raised')
+    t.equal(sawData, true, 'saw data')
+    t.end()
+  })
+  let sawData = false
+  f.on('data', d => {
+    sawData = true
+    t.equal(d, 'foo')
+  })
+  f.end('foo')
+})
+
+t.test('missing flush option throws', t => {
+  t.throws(() => new Flush({}), {
+    message: 'must provide flush function in options'
+  })
+  t.end()
+})
