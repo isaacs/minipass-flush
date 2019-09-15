@@ -87,7 +87,8 @@ t.test('flush option, not ok, promise', t => {
       flushCalled = true
       return Promise.reject(poop)
     }
-  })({ encoding: 'utf8' })
+  })()
+  f.setEncoding('utf8')
 
   f.on('error', er => {
     t.equal(flushCalled, true, 'called flush before error event')

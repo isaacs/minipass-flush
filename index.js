@@ -1,7 +1,7 @@
 const Minipass = require('minipass')
 const _flush = Symbol('_flush')
 class Flush extends Minipass {
-  constructor (opt) {
+  constructor (opt = {}) {
     if (typeof opt === 'function')
       opt = { flush: opt }
 
