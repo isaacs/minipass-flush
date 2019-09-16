@@ -110,3 +110,31 @@ t.test('missing flush option throws', t => {
   })
   t.end()
 })
+
+t.test('only flush once', t => {
+  const f = new (class extends Flush {
+    flush (cb) {
+      if (this.flushCalled)
+        cb(new Error('called flush more than once'))
+      this.flushCalled = true
+      // why would you do this even, it's a very bad idea!
+      this.emit('end')
+      cb()
+    }
+  })
+
+  f.end()
+
+  let sawEnd = false
+  f.on('end', () => {
+    t.pass('re-emitted end')
+    t.notOk(sawEnd, 'this should be the first time seeing end')
+    sawEnd = true
+  })
+  t.ok(sawEnd, 'should have emitted the first time')
+  f.on('end', () => {
+    t.ok(sawEnd, 'this happens after')
+    t.pass('re-emitted end again')
+    t.end()
+  })
+})

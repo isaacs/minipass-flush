@@ -1,5 +1,7 @@
 const Minipass = require('minipass')
 const _flush = Symbol('_flush')
+const _flushed = Symbol('_flushed')
+const _flushing = Symbol('_flushing')
 class Flush extends Minipass {
   constructor (opt = {}) {
     if (typeof opt === 'function')
@@ -15,10 +17,18 @@ class Flush extends Minipass {
   }
 
   emit (ev, ...data) {
-    if (ev !== 'end')
+    if (ev !== 'end' || this[_flushed])
       return super.emit(ev, ...data)
 
-    const afterFlush = er => er ? super.emit('error', er) : super.emit('end')
+    if (this[_flushing])
+      return
+
+    this[_flushing] = true
+
+    const afterFlush = er => {
+      this[_flushed] = true
+      er ? super.emit('error', er) : super.emit('end')
+    }
 
     const ret = this[_flush](afterFlush)
     if (ret && ret.then)
