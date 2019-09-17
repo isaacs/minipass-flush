@@ -17,7 +17,7 @@ class Flush extends Minipass {
   }
 
   emit (ev, ...data) {
-    if (ev !== 'end' || this[_flushed])
+    if ((ev !== 'end' && ev !== 'finish') || this[_flushed])
       return super.emit(ev, ...data)
 
     if (this[_flushing])
