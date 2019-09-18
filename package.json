@@ -22,5 +22,15 @@
   },
   "files": [
     "index.js"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isaacs/minipass-flush.git"
+  },
+  "keywords": [
+    "minipass",
+    "flush",
+    "stream"
   ]
 }
