@@ -15,7 +15,7 @@
     "check-coverage": true
   },
   "devDependencies": {
-    "tap": "^14.6.9"
+    "tap": "^15.1.6"
   },
   "dependencies": {
     "minipass": "^3.0.0"
