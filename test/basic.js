@@ -8,7 +8,6 @@ t.test('flush option, ok, cb', t => {
     flushCalled = true
     return cb()
   })
-  f.setEncoding('utf8')
   f.on('end', () => {
     t.equal(flushCalled, true, 'called flush before end event')
     t.equal(sawData, true, 'saw data')
@@ -17,7 +16,7 @@ t.test('flush option, ok, cb', t => {
   let sawData = false
   f.on('data', d => {
     sawData = true
-    t.equal(d, 'foo')
+    t.equal(d.toString('utf8'), 'foo')
   })
   f.end('foo')
 })
@@ -87,8 +86,7 @@ t.test('flush option, not ok, promise', t => {
       flushCalled = true
       return Promise.reject(poop)
     }
-  })()
-  f.setEncoding('utf8')
+  })({ encoding: 'utf8' })
 
   f.on('error', er => {
     t.equal(flushCalled, true, 'called flush before error event')
