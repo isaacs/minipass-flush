@@ -1,13 +1,14 @@
 # minipass-flush
 
-A Minipass stream that calls a flush function before emitting 'end'
+A Minipass stream that calls a flush function before emitting
+'end'.
 
 ## USAGE
 
-```js
-const Flush = require('minipass-flush')
-const f = new Flush({
-  flush (cb) {
+```ts
+import { Flush } from 'minipass-flush'
+const f = new Flush<Buffer>({
+  flush(cb) {
     // call the cb when done, or return a promise
     // the 'end' event will wait for it, along with
     // close, finish, and prefinish.
@@ -24,14 +25,12 @@ someDataSource.pipe(f).on('end', () => {
 
 // Or as a subclass implementing a 'flush' method:
 class MyFlush extends Flush {
-  flush (cb) {
+  flush(cb) {
     // old fashioned callback style!
     rerouteAllEncryptions(er => {
-      if (er)
-        return cb(er)
+      if (er) return cb(er)
       clearAllChannels(er => {
-        if (er)
-          cb(er)
+        if (er) cb(er)
         cb()
       })
     })
@@ -41,7 +40,7 @@ class MyFlush extends Flush {
 
 That's about it.
 
-If your `flush` method doesn't have to do anything asynchronous, then it's
-better to call the callback right away in this tick, rather than returning
-`Promise.resolve()`, so that the `end` event can happen as soon as
-possible.
+If your `flush` method doesn't have to do anything asynchronous,
+then it's better to call the callback right away in this tick,
+rather than returning `Promise.resolve()`, so that the `end`
+event can happen as soon as possible.

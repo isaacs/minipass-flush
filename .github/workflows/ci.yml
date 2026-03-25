@@ -1,12 +1,29 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - '*.json'
+      - '*.js'
+      - '*.ts'
+      - 'lib/**'
+      - 'scripts/**'
+      - '.github/workflows/ci.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x, 17.x]
+        node-version: [22.x, 24.x, 25.x]
         platform:
         - os: ubuntu-latest
           shell: bash
@@ -25,10 +42,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1.1.0
+        uses: actions/checkout@v6
 
       - name: Use Nodejs ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
 

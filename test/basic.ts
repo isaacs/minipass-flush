@@ -1,12 +1,14 @@
-const Flush = require('../')
-const t = require('tap')
+import { Flush } from '../src/index.js'
+import t from 'tap'
 
 t.test('flush option, ok, cb', t => {
   let flushCalled = false
-  const f = new Flush((cb) => {
-    t.equal(flushCalled, false, 'call flush one time')
-    flushCalled = true
-    return cb()
+  const f = new Flush({
+    flush: cb => {
+      t.equal(flushCalled, false, 'call flush one time')
+      flushCalled = true
+      return cb()
+    },
   })
   f.on('end', () => {
     t.equal(flushCalled, true, 'called flush before end event')
@@ -16,7 +18,7 @@ t.test('flush option, ok, cb', t => {
   let sawData = false
   f.on('data', d => {
     sawData = true
-    t.equal(d.toString('utf8'), 'foo')
+    t.equal(String(d), 'foo')
   })
   f.end('foo')
 })
@@ -25,11 +27,11 @@ t.test('flush option, ok, promise', t => {
   let flushCalled = false
   const f = new Flush({
     encoding: 'utf8',
-    flush () {
+    flush() {
       t.equal(flushCalled, false, 'call flush one time')
       flushCalled = true
       return Promise.resolve(true)
-    }
+    },
   })
   f.on('end', () => {
     t.equal(flushCalled, true, 'called flush before end event')
@@ -48,13 +50,14 @@ t.test('flush option, not ok, cb', t => {
   let flushCalled = false
   const poop = new Error('poop')
   // can override subclass's flush with an option
-  const f = new (class extends Flush {
-    flush (cb) {
+  class MyFlush extends Flush<string, string> {
+    flush() {
       t.fail('should not call this flush function')
     }
-  })({
+  }
+  const f = new MyFlush({
     encoding: 'utf8',
-    flush (cb) {
+    flush(cb) {
       t.equal(flushCalled, false, 'call flush one time')
       flushCalled = true
       return cb(poop)
@@ -80,13 +83,14 @@ t.test('flush option, not ok, promise', t => {
   const poop = new Error('poop')
 
   // extending a subclass with a flush() method works the same way
-  const f = new (class extends Flush {
-    flush () {
+  class MyFlush extends Flush<string, string> {
+    flush() {
       t.equal(flushCalled, false, 'call flush one time')
       flushCalled = true
       return Promise.reject(poop)
     }
-  })({ encoding: 'utf8' })
+  }
+  const f = new MyFlush({ encoding: 'utf8' })
 
   f.on('error', er => {
     t.equal(flushCalled, true, 'called flush before error event')
@@ -104,22 +108,23 @@ t.test('flush option, not ok, promise', t => {
 
 t.test('missing flush option throws', t => {
   t.throws(() => new Flush({}), {
-    message: 'must provide flush function in options'
+    message: 'must provide flush function in options',
   })
   t.end()
 })
 
 t.test('only flush once', t => {
-  const f = new (class extends Flush {
-    flush (cb) {
-      if (this.flushCalled)
-        cb(new Error('called flush more than once'))
+  class MyFlush<R, W> extends Flush<R, W> {
+    flushCalled = false
+    flush(cb: (er?: unknown) => void) {
+      if (this.flushCalled) cb(new Error('called flush more than once'))
       this.flushCalled = true
       // why would you do this even, it's a very bad idea!
       this.emit('end')
       cb()
     }
-  })
+  }
+  const f = new MyFlush({})
 
   f.end()
 
