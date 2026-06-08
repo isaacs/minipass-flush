@@ -33,7 +33,7 @@
     "minipass": "^7.1.3"
   },
   "files": [
-    "index.js"
+    "dist"
   ],
   "main": "./dist/commonjs/index.js",
   "repository": {
